@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موقع المباريات</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* ====== صفحة اللوغو ====== */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 10000;
+            transition: opacity 1s ease, visibility 1s ease;
+        }
+        #splash-screen.hidden {
+            opacity: 0; visibility: hidden; pointer-events: none;
+        }
+        .logo-container {
+            text-align: center;
+            animation: logoPulse 2s ease-in-out infinite;
+        }
+        .logo-icon {
+            width: 120px; height: 120px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            border-radius: 24px;
+            display: flex; justify-content: center; align-items: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 60px rgba(245, 158, 11, 0.4);
+        }
+        .logo-icon svg { width: 60px; height: 60px; fill: white; }
+        .logo-text {
+            font-size: 2.5rem; font-weight: 900;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* ====== الصفحة الرئيسية ====== */
+        #main-page { min-height: 100vh; display: none; }
+        #main-page.active { display: block; }
+
+        .site-header {
+            text-align: center; padding: 40px 20px 20px;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+        }
+        .site-title {
+            font-size: 3.5rem; font-weight: 900;
+            background: linear-gradient(135deg, #f59e0b, #ef4444, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+        }
+
+        /* ====== التبويبات ====== */
+        .tabs-container {
+            position: sticky; top: 0; z-index: 1000;
+            background: #0f172a; padding: 15px 10px;
+            border-bottom: 1px solid #334155;
+        }
+        .tabs {
+            display: flex; justify-content: center; gap: 10px;
+            max-width: 600px; margin: 0 auto;
+        }
+        .tab-btn {
+            flex: 1; padding: 12px 20px; border: none; border-radius: 12px;
+            font-family: 'Tajawal', sans-serif; font-size: 1.1rem; font-weight: 700;
+            cursor: pointer; transition: all 0.3s ease;
+            background: #1e293b; color: #94a3b8;
+        }
+        .tab-btn:hover { background: #334155; color: #e2e8f0; }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        /* ====== محتوى التبويبات ====== */
+        .tab-content {
+            display: none; padding: 20px; max-width: 800px;
+            margin: 0 auto; min-height: calc(100vh - 300px);
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ====== مباريات ====== */
+        .matches-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;
+        }
+        .match-poster {
+            position: relative; border-radius: 16px; overflow: hidden;
+            cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease;
+            aspect-ratio: 16/10; background: #1e293b;
+        }
+        .match-poster:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .match-poster img { width: 100%; height: 100%; object-fit: cover; }
+        .match-overlay {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            padding: 15px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+        }
+        .match-teams { font-size: 0.9rem; font-weight: 700; color: white; }
+        .match-date { font-size: 0.75rem; color: #f59e0b; margin-top: 4px; }
+
+        /* ====== مراجعات ====== */
+        .section-title {
+            font-size: 1.3rem; font-weight: 800; margin-bottom: 20px;
+            padding-right: 10px; border-right: 4px solid #f59e0b;
+            color: #f8fafc;
+        }
+        .review-card {
+            background: #1e293b; border-radius: 16px; padding: 20px;
+            margin-bottom: 15px; cursor: pointer; transition: all 0.3s ease;
+            border: 1px solid #334155;
+        }
+        .review-card:hover { border-color: #f59e0b; transform: translateX(-5px); }
+        .review-header {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 15px;
+        }
+        .reviewer-avatar {
+            width: 45px; height: 45px; border-radius: 50%;
+            object-fit: cover; border: 2px solid #f59e0b;
+        }
+        .reviewer-info { flex: 1; }
+        .reviewer-name { font-weight: 700; color: #f8fafc; font-size: 1rem; }
+        .review-match-info { font-size: 0.85rem; color: #94a3b8; }
+        .review-body { display: flex; gap: 15px; align-items: flex-start; }
+        .review-poster {
+            width: 100px; height: 140px; border-radius: 10px;
+            object-fit: cover; flex-shrink: 0;
+        }
+        .review-text {
+            flex: 1; font-size: 0.95rem; line-height: 1.7; color: #cbd5e1;
+            display: -webkit-box; -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical; overflow: hidden;
+        }
+
+        /* ====== قوائم ====== */
+        .list-card {
+            background: #1e293b; border-radius: 16px; padding: 20px;
+            margin-bottom: 20px; cursor: pointer; transition: all 0.3s ease;
+            border: 1px solid #334155;
+        }
+        .list-card:hover { border-color: #f59e0b; }
+        .list-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .list-creator-avatar {
+            width: 45px; height: 45px; border-radius: 50%;
+            object-fit: cover; border: 2px solid #ef4444;
+        }
+        .list-title-text { font-weight: 800; font-size: 1.1rem; color: #f8fafc; }
+        .list-creator-name { font-size: 0.85rem; color: #94a3b8; }
+        .list-posters {
+            display: flex; gap: 8px; margin-bottom: 15px;
+            overflow-x: auto; padding-bottom: 5px;
+        }
+        .list-posters::-webkit-scrollbar { height: 4px; }
+        .list-posters::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
+        .list-poster-img {
+            width: 80px; height: 120px; border-radius: 8px;
+            object-fit: cover; flex-shrink: 0;
+        }
+        .list-summary {
+            font-size: 0.9rem; line-height: 1.7; color: #cbd5e1;
+            display: -webkit-box; -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .read-more { color: #f59e0b; font-weight: 700; font-size: 0.85rem; margin-top: 8px; display: inline-block; }
+
+        /* ====== أخبار ====== */
+        .news-card {
+            background: #1e293b; border-radius: 16px; overflow: hidden;
+            margin-bottom: 20px; cursor: pointer; transition: all 0.3s ease;
+            border: 1px solid #334155;
+        }
+        .news-card:hover { border-color: #f59e0b; transform: translateY(-3px); }
+        .news-image { width: 100%; height: 200px; object-fit: cover; }
+        .news-content { padding: 20px; }
+        .news-title { font-size: 1.2rem; font-weight: 800; color: #f8fafc; margin-bottom: 10px; }
+        .news-excerpt {
+            font-size: 0.9rem; line-height: 1.7; color: #94a3b8;
+            display: -webkit-box; -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical; overflow: hidden;
+        }
+
+        /* ====== شريط التنقل السفلي ====== */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #0f172a; border-top: 1px solid #334155;
+            padding: 12px 20px; display: flex; justify-content: center; gap: 40px;
+            z-index: 1000;
+        }
+        .nav-btn {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            background: none; border: none; color: #94a3b8;
+            font-family: 'Tajawal', sans-serif; font-size: 0.75rem;
+            cursor: pointer; transition: color 0.3s ease;
+        }
+        .nav-btn:hover { color: #f59e0b; }
+        .nav-btn svg { width: 24px; height: 24px; }
+
+        /* ====== صفحات التفاصيل ====== */
+        .detail-page {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: #0f172a; z-index: 2000; overflow-y: auto;
+        }
+        .detail-page.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .detail-header {
+            position: relative; padding: 20px;
+            display: flex; align-items: center; gap: 15px;
+            border-bottom: 1px solid #334155;
+        }
+        .back-btn {
+            background: #334155; border: none; width: 40px; height: 40px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: white; transition: background 0.3s ease;
+        }
+        .back-btn:hover { background: #475569; }
+        .detail-title { font-size: 1.3rem; font-weight: 800; }
+        .detail-content { padding: 20px; max-width: 800px; margin: 0 auto; }
+        .detail-image { width: 100%; border-radius: 16px; margin-bottom: 20px; }
+        .detail-text { font-size: 1rem; line-height: 1.9; color: #cbd5e1; }
+
+        /* ====== نموذج البحث ====== */
+        .search-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.98); z-index: 3000; padding: 20px;
+        }
+        .search-overlay.active {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .search-box {
+            width: 100%; max-width: 500px; padding: 15px 20px;
+            border: 2px solid #334155; border-radius: 16px;
+            background: #1e293b; color: white;
+            font-family: 'Tajawal', sans-serif; font-size: 1.2rem; text-align: center;
+        }
+        .search-box:focus { outline: none; border-color: #f59e0b; }
+        .close-search {
+            margin-top: 20px; background: #334155; border: none;
+            padding: 10px 30px; border-radius: 12px; color: white;
+            font-family: 'Tajawal', sans-serif; font-size: 1rem; cursor: pointer;
+        }
+
+        /* ====== نموذج تسجيل الدخول ====== */
+        .auth-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.98); z-index: 3000; padding: 20px;
+            align-items: center; justify-content: center;
+        }
+        .auth-overlay.active { display: flex; }
+        .auth-box {
+            background: #1e293b; border-radius: 24px; padding: 40px;
+            width: 100%; max-width: 400px; border: 1px solid #334155;
+        }
+        .auth-box h2 { text-align: center; margin-bottom: 30px; font-size: 1.8rem; }
+        .auth-input {
+            width: 100%; padding: 14px 18px; margin-bottom: 15px;
+            border: 1px solid #334155; border-radius: 12px;
+            background: #0f172a; color: white;
+            font-family: 'Tajawal', sans-serif; font-size: 1rem;
+        }
+        .auth-input:focus { outline: none; border-color: #f59e0b; }
+        .auth-btn {
+            width: 100%; padding: 14px; border: none; border-radius: 12px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: white; font-family: 'Tajawal', sans-serif;
+            font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 10px;
+        }
+        .close-auth {
+            position: absolute; top: 20px; left: 20px;
+            background: none; border: none; color: #94a3b8;
+            font-size: 1.5rem; cursor: pointer;
+        }
+
+        /* ====== مسافة للشريط السفلي ====== */
+        .content-spacer { height: 80px; }
+    </style>
+</head>
+<body>
+
+    <!-- ====== صفحة اللوغو ====== -->
+    <div id="splash-screen">
+        <div class="logo-container">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            </div>
+            <div class="logo-text">كورة بلس</div>
+        </div>
+    </div>
+
+    <!-- ====== الصفحة الرئيسية ====== -->
+    <div id="main-page">
+        <div class="site-header">
+            <h1 class="site-title">كورة بلس</h1>
+        </div>
+
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('matches')">مباريات</button>
+                <button class="tab-btn" onclick="switchTab('reviews')">مراجعات</button>
+                <button class="tab-btn" onclick="switchTab('lists')">قوائم</button>
+                <button class="tab-btn" onclick="switchTab('news')">اخبار</button>
+            </div>
+        </div>
+
+        <!-- محتوى المباريات -->
+        <div id="matches" class="tab-content active">
+            <div class="matches-grid">
+                <div class="match-poster" onclick="openDetail('match', 'ريال مدريد vs برشلونة')">
+                    <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&h=250&fit=crop" alt="مباراة">
+                    <div class="match-overlay">
+                        <div class="match-teams">ريال مدريد vs برشلونة</div>
+                        <div class="match-date">الأحد، 28 أبريل 2026</div>
+                    </div>
+                </div>
+                <div class="match-poster" onclick="openDetail('match', 'مانشستر يونايتد vs ليفربول')">
+                    <img src="https://images.unsplash.com/photo-1522778119026-d647f0565c6a?w=400&h=250&fit=crop" alt="مباراة">
+                    <div class="match-overlay">
+                        <div class="match-teams">مانشستر يونايتد vs ليفربول</div>
+                        <div class="match-date">السبت، 27 أبريل 2026</div>
+                    </div>
+                </div>
+                <div class="match-poster" onclick="openDetail('match', 'بايرن ميونخ vs دورتموند')">
+                    <img src="https://images.unsplash.com/photo-1489944440615-453fc2b6a4a9?w=400&h=250&fit=crop" alt="مباراة">
+                    <div class="match-overlay">
+                        <div class="match-teams">بايرن ميونخ vs دورتموند</div>
+                        <div class="match-date">الجمعة، 26 أبريل 2026</div>
+                    </div>
+                </div>
+                <div class="match-poster" onclick="openDetail('match', 'الأهلي vs الزمالك')">
+                    <img src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=400&h=250&fit=crop" alt="مباراة">
+                    <div class="match-overlay">
+                        <div class="match-teams">الأهلي vs الزمالك</div>
+                        <div class="match-date">الخميس، 25 أبريل 2026</div>
+                    </div>
+                </div>
+                <div class="match-poster" onclick="openDetail('match', 'يوفنتوس vs إنتر ميلان')">
+                    <img src="https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=400&h=250&fit=crop" alt="مباراة">
+                    <div class="match-overlay">
+                        <div class="match-teams">يوفنتوس vs إنتر ميلان</div>
+                        <div class="match-date">الأربعاء، 24 أبريل 2026</div>
+                    </div>
+                </div>
+                <div class="match-poster" onclick="openDetail('match', 'باريس سان جيرمان vs مارسيليا')">
+                    <img src="https://images.unsplash.com/photo-1556056504-5c7696c4c28d?w=400&h=250&fit=crop" alt="مباراة">
+                    <div class="match-overlay">
+                        <div class="match-teams">باريس سان جيرمان vs مارسيليا</div>
+                        <div class="match-date">الثلاثاء، 23 أبريل 2026</div>
+                    </div>
+                </div>
+                <div class="match-poster" onclick="openDetail('match', 'تشيلسي vs آرسنال')">
+                    <img src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=400&h=250&fit=crop" alt="مباراة">
+                    <div class="match-overlay">
+                        <div class="match-teams">تشيلسي vs آرسنال</div>
+                        <div class="match-date">الإثنين، 22 أبريل 2026</div>
+                    </div>
+                </div>
+                <div class="match-poster" onclick="openDetail('match', 'مانشستر سيتي vs توتنهام')">
+                    <img src="https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=400&h=250&fit=crop" alt="مباراة">
+                    <div class="match-overlay">
+                        <div class="match-teams">مانشستر سيتي vs توتنهام</div>
+                        <div class="match-date">الأحد، 21 أبريل 2026</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- محتوى المراجعات -->
+        <div id="reviews" class="tab-content">
+            <h2 class="section-title">أشهر مراجعات هذا الأسبوع</h2>
+            
+            <div class="review-card" onclick="openDetail('review', 'مراجعة كلاسيكو الأرض')">
+                <div class="review-header">
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop" class="reviewer-avatar" alt="صورة المستخدم">
+                    <div class="reviewer-info">
+                        <div class="reviewer-name">أحمد محمد</div>
+                        <div class="review-match-info">ريال مدريد vs برشلونة - 2026</div>
+                    </div>
+                </div>
+                <div class="review-body">
+                    <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=200&h=280&fit=crop" class="review-poster" alt="بوستر المباراة">
+                    <div class="review-text">
+                        مباراة استثنائية من الطراز الأول! الأداء الهجومي لريال مدريد كان مذهلاً خاصة في الشوط الثاني. فينيسيوس جونيور قدم مستوى خرافي وسجل هدفين رائعين. برشلونة حاول العودة لكن الدفاع المنظم لريال منع أي فرص حقيقية. التحكيم كان جيداً بشكل عام رغم بعض القرارات المثيرة للجدل. باختصار، هذه المباراة تستحق المشاهدة لكل عشاق كرة القدم.
+                    </div>
+                </div>
+            </div>
+
+            <div class="review-card" onclick="openDetail('review', 'مراجعة ديربي مانشستر')">
+                <div class="review-header">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" class="reviewer-avatar" alt="صورة المستخدم">
+                    <div class="reviewer-info">
+                        <div class="reviewer-name">خالد العلي</div>
+                        <div class="review-match-info">مانشستر يونايتد vs ليفربول - 2026</div>
+                    </div>
+                </div>
+                <div class="review-body">
+                    <img src="https://images.unsplash.com/photo-1522778119026-d647f0565c6a?w=200&h=280&fit=crop" class="review-poster" alt="بوستر المباراة">
+                    <div class="review-text">
+                        ديربي ملتهب كالعادة! ليفربول بدأ المباراة بقوة وسجل هدف مبكر عن طريق محمد صلاح. يونايتد استعاد توازنه في الشوط الثاني وتمكن من إدراك التعادل. المباراة شهدت إثارة كبيرة حتى آخر دقيقة. التكتيك من كلا المدربين كان ممتازاً.
+                    </div>
+                </div>
+            </div>
+
+            <div class="review-card" onclick="openDetail('review', 'مراجعة ديربي ألمانيا')">
+                <div class="review-header">
+                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" class="reviewer-avatar" alt="صورة المستخدم">
+                    <div class="reviewer-info">
+                        <div class="reviewer-name">سارة أحمد</div>
+                        <div class="review-match-info">بايرن ميونخ vs دورتموند - 2026</div>
+                    </div>
+                </div>
+                <div class="review-body">
+                    <img src="https://images.unsplash.com/photo-1489944440615-453fc2b6a4a9?w=200&h=280&fit=crop" class="review-poster" alt="بوستر المباراة">
+                    <div class="review-text">
+                        مباراة مليئة بالأهداف والإثارة! بايرن ميونخ أظهر لماذا هو بطل ألمانيا بأداء ساحق. هاري كين سجل ثلاثية تاريخية. دورتموند قدم مقاومة شريفة لكن الفارق في الجودة كان واضحاً. الملعب كان ممتلئاً والأجواء رائعة.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- محتوى القوائم -->
+        <div id="lists" class="tab-content">
+            <h2 class="section-title">أشهر قوائم هذا الأسبوع</h2>
+            
+            <div class="list-card" onclick="openDetail('list', 'أفضل 5 مباريات في تاريخ الكلاسيكو')">
+                <div class="list-header">
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop" class="list-creator-avatar" alt="صورة المستخدم">
+                    <div>
+                        <div class="list-title-text">أفضل 5 مباريات في تاريخ الكلاسيكو</div>
+                        <div class="list-creator-name">أحمد محمد</div>
+                    </div>
+                </div>
+                <div class="list-posters">
+                    <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=160&h=240&fit=crop" class="list-poster-img" alt="مباراة">
+                    <img src="https://images.unsplash.com/photo-1522778119026-d647f0565c6a?w=160&h=240&fit=crop" class="list-poster-img" alt="مباراة">
+                    <img src="https://images.unsplash.com/photo-1489944440615-453fc2b6a4a9?w=160&h=240&fit=crop" class="list-poster-img" alt="مباراة">
+                    <img src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=160&h=240&fit=crop" class="list-poster-img" alt="مباراة">
+                    <img src="https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=160&h=240&fit=crop" class="list-poster-img" alt="مباراة">
+                </div>
+                <div class="list-summary">
+                    في هذه القائمة نستعرض أفضل 5 مباريات جمعت بين ريال مدريد وبرشلونة عبر التاريخ. من مباراة 2011 الشهيرة التي انتهت 5-0 إلى مباراة 2014 التي شهدت ريمونتادا تاريخية. كل مباراة من هذه المباريات تركت بصمة لا تُنسى في تاريخ كرة القدم العالمية...
+                </div>
+                <span class="read-more">عرض الكامل →</span>
+            </div>
+
+            <div class="list-card" onclick="openDetail('list', 'أفضل مباريات الدوري الإنجليزي 2026')">
+                <div class="list-header">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" class="list-creator-avatar" alt="صورة المستخدم">
+                    <div>
+                        <div class="list-title-text">أفضل مباريات الدوري الإنجليزي 2026</div>
+                        <div class="list-creator-name">خالد العلي</div>
+                    </div>
+                </div>
+                <div class="list-posters">
+                    <img src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=160&h=240&fit=crop" class="list-poster-img" alt="مباراة">
+                    <img src="https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=160&h=240&fit=crop" class="list-poster-img" alt="مباراة">
+                    <img src="https://images.unsplash.com/photo-1522778119026-d647f0565c6a?w=160&h=240&fit=crop" class="list-poster-img" alt="مباراة">
+                    <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=160&h=240&fit=crop" class="list-poster-img" alt="مباراة">
+                </div>
+                <div class="list-summary">
+                    موسم 2026 من الدوري الإنجليزي الممتاز شهد مباريات لا تُنسى. من مباريات القمة بين الكبار إلى المفاجآت من الفرق الصاعدة. في هذه القائمة نختار لكم أبرز المباريات التي شهدتها البريميرليج هذا الموسم...
+                </div>
+                <span class="read-more">عرض الكامل →</span>
+            </div>
+        </div>
+
+        <!-- محتوى الأخبار -->
+        <div id="news" class="tab-content">
+            <div class="news-card" onclick="openDetail('news', 'صفقة القرن: هالاند ينتقل إلى ريال مدريد')">
+                <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&h=400&fit=crop" class="news-image" alt="خبر">
+                <div class="news-content">
+                    <h3 class="news-title">صفقة القرن: هالاند ينتقل إلى ريال مدريد</h3>
+                    <p class="news-excerpt">أعلن نادي ريال مدريد الإسباني عن التعاقد مع المهاجم النرويجي إيرلينج هالاند في صفقة تاريخية تقدر قيمتها بـ 200 مليون يورو. اللاعب وقع عقداً لمدة 5 سنوات...</p>
+                </div>
+            </div>
+
+            <div class="news-card" onclick="openDetail('news', 'مانشستر سيتي يتوج بلقب الدوري الإنجليزي')">
+                <img src="https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=800&h=400&fit=crop" class="news-image" alt="خبر">
+                <div class="news-content">
+                    <h3 class="news-title">مانشستر سيتي يتوج بلقب الدوري الإنجليزي للمرة الرابعة على التوالي</h3>
+                    <p class="news-excerpt">توج نادي مانشستر سيتي بلقب الدوري الإنجليزي الممتاز للموسم الرابع على التوالي بعد فوزه في الجولة الأخيرة. بيب غوارديولا يدخل التاريخ من أوسع أبوابه...</p>
+                </div>
+            </div>
+
+            <div class="news-card" onclick="openDetail('news', 'ميسي يعلن اعتزاله دولياً')">
+                <img src="https://images.unsplash.com/photo-1556056504-5c7696c4c28d?w=800&h=400&fit=crop" class="news-image" alt="خبر">
+                <div class="news-content">
+                    <h3 class="news-title">ليونيل ميسي يعلن اعتزاله اللعب دولياً مع المنتخب الأرجنتيني</h3>
+                    <p class="news-excerpt">أعلن النجم الأرجنتيني ليونيل ميسي اعتزاله اللعب الدولي مع منتخب بلاده بعد مسيرة حافلة بالإنجازات. ميسي خاض 180 مباراة دولية وسجل 106 أهداف...</p>
+                </div>
+            </div>
+
+            <div class="news-card" onclick="openDetail('news', 'دوري أبطال أوروبا: نصف النهائي يشعل المنافسة')">
+                <img src="https://images.unsplash.com/photo-1489944440615-453fc2b6a4a9?w=800&h=400&fit=crop" class="news-image" alt="خبر">
+                <div class="news-content">
+                    <h3 class="news-title">دوري أبطال أوروبا: نصف النهائي يشعل المنافسة</h3>
+                    <p class="news-excerpt">أسفرت قرعة نصف نهائي دوري أبطال أوروبا عن مواجهات نارية تجمع بين الكبار. ريال مدريد يواجه بايرن ميونخ في كلاسيكو أوروبي، بينما يلتقي مانشستر سيتي مع باريس سان جيرمان...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-spacer"></div>
+    </div>
+
+    <!-- ====== الشريط السفلي ====== -->
+    <div class="bottom-nav">
+        <button class="nav-btn" onclick="refreshPage()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            تحديث
+        </button>
+        <button class="nav-btn" onclick="openAuth()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"/></svg>
+            تسجيل
+        </button>
+        <button class="nav-btn" onclick="openSearch()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            بحث
+        </button>
+    </div>
+
+    <!-- ====== صفحة التفاصيل ====== -->
+    <div id="detail-page" class="detail-page">
+        <div class="detail-header">
+            <button class="back-btn" onclick="closeDetail()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <div class="detail-title" id="detail-title">التفاصيل</div>
+        </div>
+        <div class="detail-content" id="detail-content"></div>
+    </div>
+
+    <!-- ====== نموذج البحث ====== -->
+    <div id="search-overlay" class="search-overlay">
+        <input type="text" class="search-box" placeholder="ابحث عن مباراة، فريق، أو لاعب..." id="search-input">
+        <button class="close-search" onclick="closeSearch()">إغلاق</button>
+    </div>
+
+    <!-- ====== نموذج تسجيل الدخول ====== -->
+    <div id="auth-overlay" class="auth-overlay">
+        <button class="close-auth" onclick="closeAuth()">✕</button>
+        <div class="auth-box">
+            <h2>تسجيل الدخول</h2>
+            <input type="email" class="auth-input" placeholder="البريد الإلكتروني">
+            <input type="password" class="auth-input" placeholder="كلمة المرور">
+            <button class="auth-btn">دخول</button>
+        </div>
+    </div>
+
+    <script>
+        // ====== صفحة اللوغو ======
+        setTimeout(() => {
+            document.getElementById('splash-screen').classList.add('hidden');
+            document.getElementById('main-page').classList.add('active');
+        }, 2500);
+
+        // ====== التبديل بين التبويبات ======
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ====== فتح صفحة التفاصيل ======
+        function openDetail(type, title) {
+            const detailPage = document.getElementById('detail-page');
+            const detailTitle = document.getElementById('detail-title');
+            const detailContent = document.getElementById('detail-content');
+            
+            detailTitle.textContent = title;
+            
+            let content = '';
+            if (type === 'match') {
+                content = `
+                    <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&h=400&fit=crop" class="detail-image" alt="مباراة">
+                    <div class="detail-text">
+                        <p style="font-size: 1.3rem; font-weight: 800; margin-bottom: 15px; color: #f59e0b;">${title}</p>
+                        <p>مباراة مثيرة تجمع بين فريقين من أفضل الفرق في العالم. شهدت المباراة أداءً رائعاً من كلا الفريقين مع تبادل الهجمات طوال 90 دقيقة.</p>
+                        <br>
+                        <p><strong>النتيجة:</strong> 3 - 2</p>
+                        <p><strong>التاريخ:</strong> 28 أبريل 2026</p>
+                        <p><strong>الملعب:</strong> سانتياغو برنابيو</p>
+                        <p><strong>الحضور:</strong> 81,044 متفرج</p>
+                        <br>
+                        <p>شهدت المباراة أهدافاً رائعة وإثارة كبيرة حتى الصافرة النهائية. الفريق الفائز قدم أداءً تكتيكياً ممتازاً استحق به الفوز.</p>
+                    </div>
+                `;
+            } else if (type === 'review') {
+                content = `
+                    <div class="detail-text">
+                        <p style="font-size: 1.3rem; font-weight: 800; margin-bottom: 15px; color: #f59e0b;">${title}</p>
+                        <p>مراجعة تفصيلية للمباراة من قبل أحد محللي الموقع. تم تحليل الأداء الفني للفريقين والقرارات التكتيكية التي اتخذها المدربان.</p>
+                        <br>
+                        <p>التقييم العام: ⭐⭐⭐⭐⭐ (5/5)</p>
+                        <br>
+                        <p>المراجعة الكاملة تشمل تحليلاً لكل لاعب على حدة ونقاط القوة والضعف في أداء الفريقين. كما تتضمن المراجعة مقارنة إحصائية بين الفريقين في مختلف الجوانب.</p>
+                    </div>
+                `;
+            } else if (type === 'list') {
+                content = `
+                    <div class="detail-text">
+                        <p style="font-size: 1.3rem; font-weight: 800; margin-bottom: 15px; color: #f59e0b;">${title}</p>
+                        <p>قائمة مفصلة تستعرض أفضل المباريات المختارة بعناية. تم اختيار هذه المباريات بناءً على معايير متعددة تشمل جودة الأداء، الأهداف، والإثارة.</p>
+                        <br>
+                        <p>المباريات المدرجة في القائمة:</p>
+                        <ol style="margin: 15px 30px; line-height: 2;">
+                            <li>ريال مدريد vs برشلونة - 2011</li>
+                            <li>ليفربول vs ميلان - 2005</li>
+                            <li>ألمانيا vs البرازيل - 2014</li>
+                            <li>برشلونة vs باريس سان جيرمان - 2017</li>
+                            <li>ريال مدريد vs أتلتيكو مدريد - 2014</li>
+                        </ol>
+                    </div>
+                `;
+            } else if (type === 'news') {
+                content = `
+                    <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&h=400&fit=crop" class="detail-image" alt="خبر">
+                    <div class="detail-text">
+                        <p style="font-size: 1.3rem; font-weight: 800; margin-bottom: 15px; color: #f59e0b;">${title}</p>
+                        <p>خبر مفصل يتناول آخر التطورات في عالم كرة القدم. يشمل الخبر تصريحات رسمية وتحليلات من مصادر موثوقة.</p>
+                        <br>
+                        <p>المصدر: وكالات الأنباء الرياضية</p>
+                        <p>تاريخ النشر: 28 أبريل 2026</p>
+                        <br>
+                        <p>التفاصيل الكاملة للخبر مع المزيد من المعلومات والصور والفيديوهات المتعلقة بهذا الحدث الرياضي المهم.</p>
+                    </div>
+                `;
+            }
+            
+            detailContent.innerHTML = content;
+            detailPage.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // ====== إغلاق صفحة التفاصيل ======
+        function closeDetail() {
+            document.getElementById('detail-page').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // ====== تحديث الصفحة ======
+        function refreshPage() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const btn = event.currentTarget;
+            btn.style.color = '#f59e0b';
+            setTimeout(() => { btn.style.color = ''; }, 500);
+        }
+
+        // ====== البحث ======
+        function openSearch() {
+            document.getElementById('search-overlay').classList.add('active');
+            document.getElementById('search-input').focus();
+        }
+        function closeSearch() {
+            document.getElementById('search-overlay').classList.remove('active');
+        }
+
+        // ====== تسجيل الدخول ======
+        function openAuth() {
+            document.getElementById('auth-overlay').classList.add('active');
+        }
+        function closeAuth() {
+            document.getElementById('auth-overlay').classList.remove('active');
+        }
+
+        // إغلاق البحث بزر Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeSearch();
+                closeAuth();
+                closeDetail();
+            }
+        });
+    </script>
+
+</body>
+</html>
