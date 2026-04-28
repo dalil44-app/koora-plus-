@@ -1,0 +1,13 @@
+koora-plus/
+├── index.html          # الصفحة الرئيسية
+├── README.md           # هذا الملف
+├── LICENSE             # رخصة المشروع
+├── .gitignore          # ملفات يتجاهلها Git
+├── CONTRIBUTING.md     # دليل المساهمة
+├── package.json        # إعدادات المشروع
+├── assets/             # الصور والموارد
+├── css/                # ملفات CSS
+├── js/                 # ملفات JavaScript
+└── .github/
+    └── workflows/
+        └── deploy.yml  # تفعيل GitHub Pages تلقائياً
