@@ -1,0 +1,37 @@
+
+---
+
+## 📄 4. `package.json`
+
+[تحميل محتوى package.json](sandbox:///mnt/agents/output/package_json_content.txt)
+
+```json
+{
+  "name": "koora-plus",
+  "version": "1.0.0",
+  "description": "موقع عربي لعشاق كرة القدم - مباريات، مراجعات، قوائم، وأخبار",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx live-server --port=3000",
+    "build": "echo 'Static site - no build needed'"
+  },
+  "keywords": [
+    "football",
+    "soccer",
+    "arabic",
+    "sports",
+    "matches",
+    "reviews"
+  ],
+  "author": "Koora Plus Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/koora-plus.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/koora-plus/issues"
+  },
+  "homepage": "https://yourusername.github.io/koora-plus"
+}
